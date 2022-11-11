@@ -85,100 +85,356 @@ int main(){
 
     int t;
     int iter;
-    
+    srand(time(0));
+
     bool completed[16];
     int skillreq[16];
     int skillcodecorr[16];
     int daysreq[16];
     int bbf[16];
-    for(i = 0 ; i < 16;i++){
-        skillreq[i] = (i)%4 + 1;//required skill set of the project 
-        skillcodecorr[i] = i%5 + 1;// has the skill name that has to be awssociated with the code 
-        daysreq[i] = 5;
-        bbf[i] = i + 8;
-    }
     
    int contributors[5];
    //numofcontrubutirs = 5
    
-   for(i =0 ; i < 5;i++){
-      contributors[i] = 0;
-      
-   }
-    for(i = 0 ; i < 16;i++){
-       completed[i] = 0 ;
-    }
-
-    int contriava[5];\
+   
+    int contriava[5];
     int contritime[5];
-    for(i = 0 ; i < 5;i++){
-        contriava[i] = 0 ;
-        contritime[i] = 0;
-    }
+    
     
     int iter ;
+    int score[16];
+    int contrialloted[5];
+    int per[16] ; 
+    int time = 0;
+    int subtaskcomp[16];
+    
+    int maxiterans = INT_MIN;
+    int maxalloted[16];
+    
     for(iter =0 ;iter < rdmpopsize;iter++){
+        
+        for(i = 0 ; i < 16;i++){
+            skillreq[i] = (i)%4 + 1;//required skill set of the project 
+            skillcodecorr[i] = i%5 + 1;// has the skill name that has to be awssociated with the code 
+            daysreq[i] = 5;
+            bbf[i] = i + 8;
+            score[i] = i + 1;
+        }
 
-        int per[16] ;
+        
+
+        for(i =0 ; i < 5;i++){
+            contributors[i] = 0;
+            contriava[i] = 0 ;
+            contritime[i] = 0;
+            completed[i] = 0 ;
+            contrialloted[i] = -1;
+        }
+        
+        
         int j;
         for(j =0 ; j < 16;j++){
             per[j] = vp100[i][j];
         }
 
-        int time = 0;
+        
+        for(i =0 ; i < 16;i++){
+            subtaskcomp[i] = -1;
+        }
         for(time = 0; time < 10;time++)
         {
-
             // making contributor available 
             for(j =0 ; j < 5;j++){
                 if(time == contritime[j]){
+                    int x = contrialloted[j];
+                    subtaskcomp[x] = time;
+                    // time at which it is completed
                     contriava[j] = 0;
                 }
             }
 
-        for(j = 0 ; j < 16;j++){
-            if(completed[j])continue;
-            else { 
-                int subtask = per[j];
-                int x = skillreq[subtask];
-                int y = skillcodecorr[subtask];
-                int k;
-                int minel = INT_MIN;
-                int index = -1;
-                for(k = 0 ; k < 5;k++){
-                    if(contriava[k] == 0)
-                    {int l;
-                    for(l = 0 ; l < contributor[k].size();l++){
-                        if(contributor[k][l].first == y && contributor[k][l].second >= x){
-                            minel = contributor[k][l].second;
-                            index = k;
+            for(j = 0 ; j < 16;j++){
+                if(completed[j])continue;
+                else { 
+                    int subtask = per[j];
+                    int x = skillreq[subtask];
+                    int y = skillcodecorr[subtask];
+                    int k;
+                    int minel = INT_MAX;
+                    int index = -1;
+                    for(k = 0 ; k < 5;k++){
+                        if(contriava[k] == 0)// if the conritbutor is available 
+                        {
+                           int l;
+                           for(l = 0 ; l < contributor[k].size();l++){
+                              if(contributor[k][l].first == y && contributor[k][l].second >= x){
+                                // if the skill is matching as well as we have that skill level to be greater than the required one 
+                                  if(contributor[k][l].second > minel)
+                                    {  minel = contributor[k][l].second;
+                                       index = k;
+                                    }
+                              }
+                            }
                         }
-                    } }
-                } 
-                if(index != -1)
-                {
-                    contritime[index] += daysreq[subtask] ;
-                    contriava[index] = 1;
+                    }  
+
+                    if(index != -1)
+                    {
+                    // if we are able to find the required contributor  
+                        contritime[index] += daysreq[subtask] ;
+                        contriava[index] = 1;
+                        contrialloted[index] = subtask ;
+                    // given the subtask to the contributor
+                    }
+
+                    // assignment of the contributor to the subtask 
+                    
+                    
+                    
+                    }
                 }
-                
-                
+        }
 
-                
-                
+        
+    
+        // SCORE CALCULATION 
+
+        int finalscore = 0;
+        for(i = 0 ; i < 16;i++){
+            if(subtaskcomp[i] == -1){
+                   continue;
+        }else if(subtaskcomp[i] <= bbf[i]){
+                finalscore += score[i];
+            }else{
+                finalscore += score[i] - (subtaskcomp[i] - bbf[i]); 
             }
-        }}
+        }
+    
+        int finalscore1 = finalscore;
 
 
+        
 
 
+        //GENERATION OF NEW POPULATION 
+        int x = rand()%16;
+
+        vector<int> newpop(16);
+        int rep[16];
+
+        for(i = 0 ; i < 16;i++){
+            rep[i] = per[i];
+        }
+
+        for(i = 0 ; i < x;i++){
+            newpop.push_back(per[i]);
+        }
+
+        for(i = 15; i >= 0 ;i--){
+            newpop.push_back(per[i]);
+            if(newpop.size() == 16)break;
+        }
+
+
+        for(i = 0 ; i < 16;i++){
+            per[i] = newpop[i];
+        }
+        
+        // allotment of the tasks to the contributors 
+
+        for(time = 0; time < 10;time++)
+        {
+            // making contributor available 
+            for(j =0 ; j < 5;j++){
+                if(time == contritime[j]){
+                    int x = contrialloted[j];
+                    subtaskcomp[x] = time;
+                    // time at which it is completed
+                    contriava[j] = 0;
+                }
+            }
+
+            for(j = 0 ; j < 16;j++){
+                if(completed[j])continue;
+                else { 
+                    int subtask = per[j];
+                    int x = skillreq[subtask];
+                    int y = skillcodecorr[subtask];
+                    int k;
+                    int minel = INT_MAX;
+                    int index = -1;
+                    for(k = 0 ; k < 5;k++){
+                        if(contriava[k] == 0)// if the conritbutor is available 
+                        {
+                           int l;
+                           for(l = 0 ; l < contributor[k].size();l++){
+                              if(contributor[k][l].first == y && contributor[k][l].second >= x){
+                                // if the skill is matching as well as we have that skill level to be greater than the required one 
+                                  if(contributor[k][l].second > minel)
+                                    {  minel = contributor[k][l].second;
+                                       index = k;
+                                    }
+                              }
+                            }
+                        }
+                    }     
+                    if(index != -1)
+                    {
+                    // if we are able to find the required contributor  
+                        contritime[index] += daysreq[subtask] ;
+                        contriava[index] = 1;
+                        contrialloted[index] = subtask ;
+                    // given the subtask to the contributor
+                    }
+
+                   
+                     
+                    
+                    
+                    }
+                }
+        }
+
+        // SCORE CALCULATION 
+
+        finalscore = 0;
+        for(i = 0 ; i < 16;i++){
+            if(subtaskcomp[i] == -1){
+                   continue;
+        }else if(subtaskcomp[i] <= bbf[i]){
+                finalscore += score[i];
+            }else{
+                finalscore += score[i] - (subtaskcomp[i] - bbf[i]); 
+            }
+        }
+    
+        int finalscore2 = finalscore;
+
+
+        if(finalscore2 > finalscore1){
+            maxalloted[i] = per[i];
+            maxiterans = finalscore2;
+        }else{
+            maxalloted[i] = rep[i];
+            maxiterans = finalscore1;
+        }
     }
 
 
+    // we got the maximum permutation 
+    // 
     
+    for(i =0 ; i < 16;i++){
+        per[i] = maxalloted[i];
+    }
+
+    for(i = 0 ; i < 16;i++){
+            skillreq[i] = (i)%4 + 1;//required skill set of the project 
+            skillcodecorr[i] = i%5 + 1;// has the skill name that has to be awssociated with the code 
+            daysreq[i] = 5;
+            bbf[i] = i + 8;
+            score[i] = i + 1;
+        }
+
+        
+
+        for(i =0 ; i < 5;i++){
+            contributors[i] = 0;
+            contriava[i] = 0 ;
+            contritime[i] = 0;
+            completed[i] = 0 ;
+            contrialloted[i] = -1;
+        }
+        
+        
+        int j;
+        for(j =0 ; j < 16;j++){
+            per[j] = vp100[i][j];
+        }
+
+        
+        for(i =0 ; i < 16;i++){
+            subtaskcomp[i] = -1;
+        }
+        for(time = 0; time < 10;time++)
+        {
+            // making contributor available 
+            for(j =0 ; j < 5;j++){
+                if(time == contritime[j]){
+                    int x = contrialloted[j];
+                    subtaskcomp[x] = time;
+                    // time at which it is completed
+                    contriava[j] = 0;
+                }
+            }
+
+            for(j = 0 ; j < 16;j++){
+                if(completed[j])continue;
+                else { 
+                    int subtask = per[j];
+                    int x = skillreq[subtask];
+                    int y = skillcodecorr[subtask];
+                    int k;
+                    int minel = INT_MAX;
+                    int index = -1;
+                    for(k = 0 ; k < 5;k++){
+                        if(contriava[k] == 0)// if the conritbutor is available 
+                        {
+                           int l;
+                           for(l = 0 ; l < contributor[k].size();l++){
+                              if(contributor[k][l].first == y && contributor[k][l].second >= x){
+                                // if the skill is matching as well as we have that skill level to be greater than the required one 
+                                  if(contributor[k][l].second > minel)
+                                    {  minel = contributor[k][l].second;
+                                       index = k;
+                                    }
+                              }
+                            }
+                        }
+                    }  
+
+                    if(index != -1)
+                    {
+                    // if we are able to find the required contributor  
+                        contritime[index] += daysreq[subtask] ;
+                        contriava[index] = 1;
+                        contrialloted[index] = subtask ;
+                    // given the subtask to the contributor
+                    }
+
+                    // assignment of the contributor to the subtask 
+                    
+                    
+                    
+                    }
+                }
+        }
+
+        
+    
+        // SCORE CALCULATION 
+
+        int finalscore = 0;
+        for(i = 0 ; i < 16;i++){
+            if(subtaskcomp[i] == -1){
+                   continue;
+        }else if(subtaskcomp[i] <= bbf[i]){
+                finalscore += score[i];
+            }else{
+                finalscore += score[i] - (subtaskcomp[i] - bbf[i]); 
+            }
+        }
+
 
 
 
 
 }
+ 
+
+
+
+
+
 
  
